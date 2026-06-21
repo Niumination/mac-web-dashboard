@@ -16,33 +16,36 @@ const execAsync = promisify(exec);
 // In-memory mock storage for Vercel demo mode
 let mockFiles: Record<string, any[]> = {
   '/': [
-    { name: 'home', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-17 10:00' },
-    { name: 'etc', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-15 14:20' },
-    { name: 'var', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-16 09:12' },
-    { name: 'usr', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-10 18:30' },
+    { name: 'Users', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-21 10:00' },
+    { name: 'Applications', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-20 14:20' },
+    { name: 'System', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-19 09:12' },
+    { name: 'usr', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-18 18:30' },
   ],
-  '/home': [
-    { name: 'arch', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-17 11:20' }
+  '/Users': [
+    { name: 'zaryu', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-21 11:20' }
   ],
-  '/home/arch': [
-    { name: '.config', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-17 11:30' },
-    { name: '.bashrc', isDir: false, size: 1820, permissions: 'rw-r--r--', modified: '2026-06-17 08:00', content: '# ~/.bashrc\n\n# Source global definitions\nif [ -f /etc/bashrc ]; then\n\t. /etc/bashrc\nfi\n\n# User specific environment and startup programs\nalias pacup="sudo pacman -Syu"\nalias ls="ls --color=auto"\nalias ll="ls -lah"' },
-    { name: 'projects', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-16 16:45' },
-    { name: 'notes.txt', isDir: false, size: 450, permissions: 'rw-r--r--', modified: '2026-06-17 09:15', content: 'Arch Linux Setup Tasks:\n1. Configure dotfiles\n2. Install i3-gaps and polybar\n3. Setup web dashboard for remote monitoring\n4. Enjoy lightweight performance!' }
+  '/Users/zaryu': [
+    { name: 'Desktop', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-21 12:30' },
+    { name: 'Documents', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-20 08:00' },
+    { name: 'Downloads', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-21 16:45' },
+    { name: '.zshrc', isDir: false, size: 1850, permissions: 'rw-r--r--', modified: '2026-06-17 08:00', content: '# ~/.zshrc\n\nexport PATH="/opt/homebrew/bin:$PATH"\n\nalias ll="ls -lah"\nalias brewup="brew update && brew upgrade && brew cleanup"\n\n# Niumination\nexport PATH="$HOME/.local/bin:$PATH"\neval "$(hermes init zsh)"' },
+    { name: '.config', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-20 11:30' },
+    { name: 'Niumination', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-21 10:00' },
   ],
-  '/home/arch/.config': [
-    { name: 'i3', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-17 11:30' },
+  '/Users/zaryu/Desktop': [
+    { name: 'Screenshot.png', isDir: false, size: 245000, permissions: 'rw-r--r--', modified: '2026-06-21 14:30', content: '(binary image data)' },
+    { name: 'notes.md', isDir: false, size: 450, permissions: 'rw-r--r--', modified: '2026-06-21 09:15', content: '# macOS Dashboard Tasks\n- [x] Set up Homebrew\n- [x] Install node, python, git\n- [ ] Test launchctl integration\n- [ ] Deploy to production\n' }
+  ],
+  '/Users/zaryu/.config': [
     { name: 'alacritty', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-17 11:30' },
+    { name: 'ghostty', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-17 11:30' },
     { name: 'starship.toml', isDir: false, size: 840, permissions: 'rw-r--r--', modified: '2026-06-17 11:30', content: '[add_newline]\nvalue = false\n\n[character]\nsuccess_symbol = "[➜](bold green)"\nerror_symbol = "[✗](bold red)"' }
   ],
-  '/home/arch/.config/i3': [
-    { name: 'config', isDir: false, size: 3420, permissions: 'rw-r--r--', modified: '2026-06-17 11:30', content: '# i3 config file\nset $mod Mod4\nfont pango:JetBrains Mono 10\nexec --no-startup-id polybar main\n\nbindsym $mod+Return exec alacritty\nbindsym $mod+d exec rofi -show drun' }
+  '/Users/zaryu/.config/ghostty': [
+    { name: 'config', isDir: false, size: 1200, permissions: 'rw-r--r--', modified: '2026-06-17 11:30', content: '# Ghostty terminal config\nfont-family = JetBrains Mono\nfont-size = 13\nbackground-opacity = 0.85\ntheme = catppuccin-mocha' }
   ],
-  '/home/arch/.config/alacritty': [
-    { name: 'alacritty.toml', isDir: false, size: 1200, permissions: 'rw-r--r--', modified: '2026-06-17 11:30', content: '[window]\npadding = { x = 10, y = 10 }\nopacity = 0.85\n\n[font]\nsize = 11.0\nnormal = { family = "JetBrains Mono", style = "Regular" }' }
-  ],
-  '/home/arch/projects': [
-    { name: 'app.js', isDir: false, size: 920, permissions: 'rw-r--r--', modified: '2026-06-16 16:45', content: 'console.log("Hello from Arch Linux System!");\n' }
+  '/Users/zaryu/Niumination': [
+    { name: 'AGENTS.md', isDir: false, size: 15200, permissions: 'rw-r--r--', modified: '2026-06-21 12:00', content: '# Niumination Ecosystem\n...' }
   ]
 };
 

@@ -15,7 +15,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, osInfo 
   const navItems = [
     { id: 'dashboard', label: 'Overview', icon: Activity },
     { id: 'files', label: 'File Manager', icon: FolderKanban },
-    { id: 'services', label: 'Systemd Services', icon: Server },
+    { id: 'services', label: 'Launchd Services', icon: Server },
     { id: 'processes', label: 'Process List', icon: Cpu },
   ];
 
@@ -23,20 +23,20 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, osInfo 
     <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#0B0F17]/80 border-b border-white/10 px-6 py-3 transition-all duration-300">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
         
-        {/* Arch Linux Logo & Title */}
+      {/* macOS Logo & Title */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-arch-cyan to-arch-blue flex items-center justify-center shadow-lg shadow-arch-cyan/20">
-            <span className="font-mono font-black text-white text-xl tracking-tighter">A</span>
+            <span className="font-mono font-black text-white text-xl tracking-tighter">M</span>
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="font-mono text-lg font-bold text-white tracking-tight">ARCH LINUX</h1>
+              <h1 className="font-mono text-lg font-bold text-white tracking-tight">macOS</h1>
               <span className="text-xs px-2 py-0.5 rounded font-mono font-semibold bg-arch-cyan/20 text-arch-cyan border border-arch-cyan/30">
                 PRO MAX
               </span>
             </div>
             <p className="text-xs text-slate-400 font-mono">
-              {osInfo.hostname || 'archlinux'} <span className="text-arch-cyan">●</span> {osInfo.kernel || '6.18.0-arch'}
+              {osInfo.hostname || 'MacBook'} <span className="text-arch-cyan">●</span> {osInfo.kernel || 'Darwin'}
             </p>
           </div>
         </div>

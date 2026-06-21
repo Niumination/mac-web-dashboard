@@ -11,7 +11,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [systemData, setSystemData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [currentFilePath, setCurrentFilePath] = useState('/home/arch');
+  const [currentFilePath, setCurrentFilePath] = useState('/Users/zaryu');
 
   const fetchSystemData = async () => {
     setLoading(true);
@@ -45,8 +45,8 @@ export default function Home() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         osInfo={{
-          hostname: systemData?.os?.hostname || 'archlinux',
-          kernel: systemData?.os?.kernel || '6.18.2-arch',
+          hostname: systemData?.os?.hostname || 'MacBook',
+          kernel: systemData?.os?.kernel || '24.5.0 Darwin',
           uptime: systemData?.os?.uptime || 'Just now'
         }}
       />
@@ -83,7 +83,7 @@ export default function Home() {
           Designed with <span className="text-arch-cyan">UI/UX Pro Max Skill</span> standards (Modern Glassmorphism + Minimalist Swiss Style).
         </div>
         <div className="text-slate-600">
-          Powered by Next.js App Router & Serverless Telemetry Fallback ● Vercel Ready ● Self-Hostable in Arch Linux
+          Powered by Next.js App Router & Serverless Telemetry Fallback ● Vercel Ready ● Self-Hostable in macOS
         </div>
       </footer>
 

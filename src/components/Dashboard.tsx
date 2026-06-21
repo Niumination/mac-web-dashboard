@@ -10,25 +10,26 @@ interface DashboardProps {
 export const Dashboard: React.FC<DashboardProps> = ({ systemData, onRefresh, loading }) => {
   const [updating, setUpdating] = useState(false);
   const [updateLog, setUpdateLog] = useState<string[]>([
-    ':: Synchronizing package databases...',
-    'core is up to date',
-    'extra is up to date',
-    'community is up to date',
-    ':: Starting full system upgrade...'
+    ':: Running brew update...',
+    'Updated 2 taps (homebrew-core, homebrew-cask).',
+    '==> New Formulae',
+    'kubectl k9s lazydocker',
+    '==> Outdated Formulae (5)',
+    'node (22.0.0 -> 22.4.1), python (3.12 -> 3.13)'
   ]);
 
   if (!systemData) return null;
 
   const { os, cpu, memory, disk, packages, temperatures } = systemData;
 
-  const handleRunPacmanUpdate = () => {
+  const handleRunBrewUpdate = () => {
     setUpdating(true);
-    setUpdateLog(prev => [...prev, '>> Running: sudo pacman -Syu --noconfirm']);
+    setUpdateLog(prev => [...prev, '> Running: brew update && brew upgrade']);
     setTimeout(() => {
-      setUpdateLog(prev => [...prev, 'resolving dependencies...', 'looking for conflicting packages...', 'Packages (14): linux-6.18.2 systemd-256 alacritty-0.13.2', 'Total Installed Size: 412.50 MiB', ':: Proceed with installation? [Y/n] Y', 'checking keyring...', 'checking package integrity...', 'loading package files...', 'upgrading packages...']);
+      setUpdateLog(prev => [...prev, '==> Upgrading 5 outdated formulae:', 'node 22.0.0 -> 22.4.1', 'python 3.12 -> 3.13', 'git 2.45 -> 2.47', '==> Upgrading 2 casks:', 'docker 4.28 -> 4.32', '==> Cleaning up...']);
     }, 1500);
     setTimeout(() => {
-      setUpdateLog(prev => [...prev, ':: Running post-transaction hooks...', 'Updating systemd-boot...', 'Full system upgrade completed successfully!']);
+      setUpdateLog(prev => [...prev, '✅ All packages up to date!', '🍺 Homebrew upgrade completed.']);
       setUpdating(false);
     }, 3500);
   };
@@ -44,7 +45,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ systemData, onRefresh, loa
             <span className="w-2.5 h-2.5 rounded-full bg-arch-cyan animate-ping" />
           </h2>
           <p className="text-slate-400 text-sm mt-1">
-            Real-time telemetry and package management for your on-premise Arch Linux machine.
+            Real-time telemetry and Homebrew package management for your local macOS machine.
           </p>
         </div>
         <button
@@ -93,7 +94,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ systemData, onRefresh, loa
             </div>
             <div className="flex justify-between">
               <span>Temp:</span>
-              <span className="text-emerald-400 font-bold">{temperatures?.cpu || 48.5} °C</span>
+              <span className="text-emerald-400 font-bold">{temperatures?.cpu || 42} °C</span>
             </div>
           </div>
         </div>
@@ -126,12 +127,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ systemData, onRefresh, loa
               <span className="text-slate-200">{memory?.total}</span>
             </div>
             <div className="flex justify-between">
-              <span>Free Buffer/Cache:</span>
+              <span>Free / Inactive:</span>
               <span className="text-emerald-400 font-semibold">{memory?.free}</span>
             </div>
             <div className="flex justify-between">
-              <span>Swap Space:</span>
-              <span className="text-slate-200">0.0 GB (Disabled)</span>
+              <span>Swap Usage:</span>
+              <span className="text-slate-200">0.0 GB (Compressed)</span>
             </div>
           </div>
         </div>
@@ -161,22 +162,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ systemData, onRefresh, loa
           <div className="mt-6 pt-4 border-t border-white/5 font-mono text-xs text-slate-400 space-y-1">
             <div className="flex justify-between">
               <span>Mount Point:</span>
-              <span className="text-slate-200">/ (ext4/btrfs)</span>
+              <span className="text-slate-200">/ (APFS)</span>
             </div>
             <div className="flex justify-between">
               <span>Total Capacity:</span>
               <span className="text-slate-200">{disk?.total}</span>
             </div>
             <div className="flex justify-between">
-              <span>Health Status:</span>
+              <span>Volume Type:</span>
               <span className="text-emerald-400 flex items-center gap-1 font-bold">
-                <CheckCircle2 className="w-3.5 h-3.5" /> SMART OK
+                <CheckCircle2 className="w-3.5 h-3.5" /> APFS
               </span>
             </div>
           </div>
         </div>
 
-        {/* 4. PACMAN & AUR PACKAGE INTELLIGENCE (2 COLS) */}
+        {/* 4. HOMEBREW INTELLIGENCE (2 COLS) */}
         <div className="bg-arch-card border border-arch-border rounded-3xl p-6 lg:col-span-2 flex flex-col justify-between backdrop-blur-xl shadow-xl">
           <div>
             <div className="flex items-center justify-between">
@@ -185,46 +186,46 @@ export const Dashboard: React.FC<DashboardProps> = ({ systemData, onRefresh, loa
                   <Package className="w-5 h-5 text-amber-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold font-mono text-white">Pacman & AUR Intelligence</h3>
-                  <p className="text-xs text-slate-400 font-mono">Arch Linux Package Management Automation</p>
+                  <h3 className="text-lg font-bold font-mono text-white">Homebrew Intelligence</h3>
+                  <p className="text-xs text-slate-400 font-mono">macOS Package Management Automation</p>
                 </div>
               </div>
               <button
-                onClick={handleRunPacmanUpdate}
+                onClick={handleRunBrewUpdate}
                 disabled={updating}
                 className="bg-gradient-to-r from-arch-cyan to-arch-blue hover:opacity-90 active:scale-95 text-white font-mono text-xs px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-arch-cyan/20"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${updating ? 'animate-spin' : ''}`} />
-                <span>{updating ? 'Upgrading System...' : 'Run Full Upgrade (-Syu)'}</span>
+                <span>{updating ? 'Upgrading Packages...' : 'Run brew upgrade'}</span>
               </button>
             </div>
 
             {/* Status grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
               <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-                <div className="text-slate-400 text-xs font-mono font-medium">Installed Packages</div>
-                <div className="text-2xl font-extrabold font-mono text-white mt-1">{packages?.pacmanInstalled || 1420}</div>
-                <div className="text-slate-500 text-[10px] mt-1">Pacman / AUR Local DB</div>
+                <div className="text-slate-400 text-xs font-mono font-medium">Formulae Installed</div>
+                <div className="text-2xl font-extrabold font-mono text-white mt-1">{packages?.brewFormulae || 142}</div>
+                <div className="text-slate-500 text-[10px] mt-1">Homebrew Core</div>
               </div>
 
               <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
                 <div className="text-slate-400 text-xs font-mono font-medium flex items-center justify-between">
-                  <span>Pending Updates</span>
-                  {(packages?.pacmanUpdates || 14) > 0 && (
+                  <span>Casks Installed</span>
+                  {(packages?.brewCasks || 42) > 0 && (
                     <span className="flex h-2 w-2 relative">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
                     </span>
                   )}
                 </div>
-                <div className="text-2xl font-extrabold font-mono text-amber-400 mt-1">{packages?.pacmanUpdates || 14}</div>
-                <div className="text-slate-500 text-[10px] mt-1 font-mono">Official Repositories</div>
+                <div className="text-2xl font-extrabold font-mono text-purple-400 mt-1">{packages?.brewCasks || 42}</div>
+                <div className="text-slate-500 text-[10px] mt-1 font-mono">GUI Applications</div>
               </div>
 
               <div className="bg-white/5 border border-white/10 rounded-2xl p-4 col-span-2 sm:col-span-1">
-                <div className="text-slate-400 text-xs font-mono font-medium">AUR Upgrades</div>
-                <div className="text-2xl font-extrabold font-mono text-purple-400 mt-1">{packages?.aurUpdates || 3}</div>
-                <div className="text-slate-500 text-[10px] mt-1 font-mono">Managed via yay / paru</div>
+                <div className="text-slate-400 text-xs font-mono font-medium">Outdated</div>
+                <div className="text-2xl font-extrabold font-mono text-amber-400 mt-1">{packages?.brewOutdated || 5}</div>
+                <div className="text-slate-500 text-[10px] mt-1 font-mono">Pending Upgrades</div>
               </div>
             </div>
           </div>
@@ -234,13 +235,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ systemData, onRefresh, loa
             <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2 text-slate-500">
               <span className="flex items-center gap-2">
                 <Terminal className="w-3.5 h-3.5 text-arch-cyan" />
-                <span>pacman-execution-pipeline.log</span>
+                <span>brew-execution-pipeline.log</span>
               </span>
               <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded text-emerald-400">READY</span>
             </div>
             <div className="space-y-1 h-32 overflow-y-auto pr-2 text-slate-300">
               {updateLog.map((log, idx) => (
-                <div key={idx} className={log.startsWith('>>') ? 'text-arch-cyan font-bold' : log.includes('successfully') ? 'text-emerald-400 font-bold' : ''}>
+                <div key={idx} className={log.startsWith('>') ? 'text-arch-cyan font-bold' : log.includes('✅') || log.includes('🍺') || log.includes('completed') ? 'text-emerald-400 font-bold' : ''}>
                   {log}
                 </div>
               ))}
@@ -248,7 +249,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ systemData, onRefresh, loa
           </div>
         </div>
 
-        {/* 5. SYSTEM ARCHITECTURE & KERNEL DETAILS */}
+        {/* 5. SYSTEM PROFILE & KERNEL DETAILS */}
         <div className="bg-arch-card border border-arch-border rounded-3xl p-6 flex flex-col justify-between backdrop-blur-xl shadow-xl">
           <div>
             <div className="flex items-center gap-3">
@@ -263,10 +264,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ systemData, onRefresh, loa
 
             <div className="mt-6 space-y-4 font-mono">
               <div className="bg-white/5 p-3.5 rounded-2xl border border-white/10">
-                <div className="text-slate-400 text-xs">Distribution</div>
+                <div className="text-slate-400 text-xs">Operating System</div>
                 <div className="text-sm font-bold text-white mt-0.5 flex items-center justify-between">
                   <span>{os?.name}</span>
-                  <span className="text-xs font-normal text-arch-cyan">Rolling</span>
+                  <span className="text-xs font-normal text-arch-cyan">Darwin</span>
                 </div>
               </div>
 
@@ -276,9 +277,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ systemData, onRefresh, loa
               </div>
 
               <div className="bg-white/5 p-3.5 rounded-2xl border border-white/10">
-                <div className="text-slate-400 text-xs">Desktop Environment</div>
+                <div className="text-slate-400 text-xs">Terminal Emulator</div>
                 <div className="text-sm font-bold text-slate-200 mt-0.5 flex items-center justify-between">
-                  <span>i3wm / Wayland (Hyprland)</span>
+                  <span>Ghostty / Alacritty</span>
                   <span className="w-2 h-2 rounded-full bg-emerald-400" />
                 </div>
               </div>
@@ -286,8 +287,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ systemData, onRefresh, loa
           </div>
 
           <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs font-mono text-slate-400">
-            <span>Init System: <strong className="text-slate-200">systemd</strong></span>
-            <span>Display: <strong className="text-slate-200">SDDM</strong></span>
+            <span>Service Manager: <strong className="text-slate-200">launchd</strong></span>
+            <span>Disk: <strong className="text-slate-200">APFS</strong></span>
           </div>
         </div>
 

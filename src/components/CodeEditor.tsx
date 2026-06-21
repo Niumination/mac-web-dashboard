@@ -87,7 +87,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ filePath, initialContent
           <div className="flex items-center gap-4">
             <span>Spaces: 2</span>
             <span>UTF-8</span>
-            <span>Arch Linux Native Access</span>
+            <span>macOS Native Access</span>
           </div>
           <div>
             <span>{content.split('\n').length} lines</span>

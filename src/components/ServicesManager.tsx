@@ -65,8 +65,8 @@ export const ServicesManager: React.FC = () => {
             <Server className="w-6 h-6 text-arch-cyan" />
           </div>
           <div>
-            <h2 className="text-xl font-bold font-mono text-white">Systemd Daemon Manager</h2>
-            <p className="text-xs text-slate-400 font-mono">Control Arch Linux native background units</p>
+            <h2 className="text-xl font-bold font-mono text-white">Launchd Daemon Manager</h2>
+            <p className="text-xs text-slate-400 font-mono">Control macOS native background services</p>
           </div>
         </div>
 

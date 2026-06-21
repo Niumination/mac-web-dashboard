@@ -15,21 +15,22 @@ export async function GET() {
 
     const loadAvg = os.loadavg(); // [1 min, 5 min, 15 min]
     const cpuCores = os.cpus().length;
-    const cpuModel = os.cpus()[0]?.model || 'Generic x86_64 CPU';
+    const cpuModel = os.cpus()[0]?.model || 'Apple Silicon';
     const cpuSpeed = os.cpus()[0]?.speed || 0;
 
-    // 2. Arch Linux Specific Data (with clever Fallback for Vercel/Ubuntu environments)
+    // 2. macOS Specific Data
+    const isMac = os.type() === 'Darwin';
     let kernelRelease = os.release();
     let hostname = os.hostname();
     let uptime = os.uptime();
     
     let diskTotal = '256 GB';
-    let diskUsed = '142 GB';
-    let diskPercent = '55%';
+    let diskUsed = '128 GB';
+    let diskPercent = '50%';
 
-    let pacmanTotal = 1420;
-    let pacmanUpdates = 14;
-    let aurUpdates = 3;
+    let brewFormulaCount = 0;
+    let brewCaskCount = 0;
+    let brewOutdated = 0;
 
     try {
       const { stdout: diskOutput } = await execAsync('df -h / | awk \'NR==2 {print $2, $3, $5}\'');
@@ -40,25 +41,30 @@ export async function GET() {
         diskPercent = parts[2];
       }
     } catch (e) {
-      // Fallback works automatically
+      // Fallback values
     }
 
-    // Try executing pacman commands
-    try {
-      const { stdout: pkgTotalOut } = await execAsync('pacman -Q | wc -l');
-      pacmanTotal = parseInt(pkgTotalOut.trim()) || 1420;
+    // Try executing brew commands (only on macOS)
+    if (isMac) {
+      try {
+        const { stdout: formulaOut } = await execAsync('brew list --formula 2>/dev/null | wc -l');
+        brewFormulaCount = parseInt(formulaOut.trim()) || 0;
 
-      const { stdout: pkgUpdatesOut } = await execAsync('pacman -Qu | wc -l');
-      pacmanUpdates = parseInt(pkgUpdatesOut.trim()) || 14;
-    } catch (e) {
-      // If pacman is not available (e.g. deployed on Vercel or Arena Sandbox), keep the simulated Arch metrics
+        const { stdout: caskOut } = await execAsync('brew list --cask 2>/dev/null | wc -l');
+        brewCaskCount = parseInt(caskOut.trim()) || 0;
+
+        const { stdout: outdatedOut } = await execAsync('brew outdated 2>/dev/null | wc -l');
+        brewOutdated = parseInt(outdatedOut.trim()) || 0;
+      } catch (e) {
+        // Homebrew not installed
+      }
     }
 
     return NextResponse.json({
       success: true,
       data: {
         os: {
-          name: 'Arch Linux x86_64',
+          name: isMac ? 'macOS (Darwin)' : 'Generic Unix',
           kernel: kernelRelease,
           hostname: hostname,
           uptime: formatUptime(uptime)
@@ -78,16 +84,16 @@ export async function GET() {
         disk: {
           total: diskTotal,
           used: diskUsed,
-          percentage: parseInt(diskPercent.replace('%', '')) || 55
+          percentage: parseInt(diskPercent.replace('%', '')) || 50
         },
         packages: {
-          pacmanInstalled: pacmanTotal,
-          pacmanUpdates: pacmanUpdates,
-          aurUpdates: aurUpdates
+          brewFormulae: brewFormulaCount,
+          brewCasks: brewCaskCount,
+          brewOutdated: brewOutdated
         },
         temperatures: {
-          cpu: 48.5,
-          gpu: 52.0
+          cpu: 42.0,
+          gpu: 38.0
         }
       }
     });

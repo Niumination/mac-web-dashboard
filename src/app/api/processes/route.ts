@@ -9,36 +9,35 @@ export async function GET() {
     let processes = [];
 
     try {
-      // Fetch actual processes
-      const { stdout } = await execAsync('ps -aux --sort=-pcpu | head -n 25');
+      // macOS: ps -A outputs all processes, -o pid,%cpu,%mem,comm -r sorts by %cpu descending
+      const { stdout } = await execAsync('ps -A -o pid,%cpu,%mem,comm -r | head -30');
       const lines = stdout.trim().split('\n').slice(1); // skip header
 
       processes = lines.map(line => {
         const parts = line.trim().split(/\s+/);
-        const user = parts[0];
-        const pid = parts[1];
-        const cpu = parseFloat(parts[2]);
-        const mem = parseFloat(parts[3]);
-        const command = parts.slice(10).join(' ');
+        const pid = parts[0];
+        const cpu = parseFloat(parts[1]) || 0;
+        const mem = parseFloat(parts[2]) || 0;
+        const command = parts.slice(3).join(' ');
 
         return {
           pid,
-          user,
+          user: '-', // macOS ps -o doesn't include user by default; add via -o user if needed
           cpu,
           mem,
-          command: command.length > 60 ? command.substring(0, 60) + '...' : command
+          command: command.length > 80 ? command.substring(0, 80) + '...' : command
         };
       });
     } catch (e) {
-      // Mock processes for non-Arch / Vercel
+      // Mock processes for non-macOS / Vercel
       processes = [
-        { pid: '1', user: 'root', cpu: 0.1, mem: 0.2, command: '/usr/lib/systemd/systemd --switched-root --system' },
-        { pid: '842', user: 'root', cpu: 2.4, mem: 1.5, command: '/usr/bin/dockerd -H fd://' },
-        { pid: '1102', user: 'arch', cpu: 14.2, mem: 8.4, command: '/usr/lib/Xorg -nolisten tcp -auth /run/sddm/xauth' },
-        { pid: '1420', user: 'arch', cpu: 8.7, mem: 12.1, command: 'alacritty --config-file ~/.config/alacritty/alacritty.toml' },
-        { pid: '1554', user: 'arch', cpu: 4.1, mem: 6.3, command: 'nvim ~/.config/i3/config' },
-        { pid: '1890', user: 'arch', cpu: 22.5, mem: 28.4, command: '/usr/lib/firefox/firefox' },
-        { pid: '2011', user: 'arch', cpu: 1.0, mem: 2.1, command: 'polybar main -c ~/.config/polybar/config.ini' },
+        { pid: '1', user: 'root', cpu: 0.0, mem: 0.0, command: 'kernel_task (macOS)' },
+        { pid: '112', user: 'root', cpu: 1.2, mem: 0.8, command: '/usr/libexec/configd' },
+        { pid: '284', user: 'zaryu', cpu: 8.5, mem: 12.4, command: 'WindowServer' },
+        { pid: '316', user: 'zaryu', cpu: 4.1, mem: 6.2, command: 'Dock' },
+        { pid: '452', user: 'zaryu', cpu: 3.2, mem: 15.8, command: 'Safari' },
+        { pid: '510', user: 'zaryu', cpu: 2.7, mem: 4.1, command: 'Terminal' },
+        { pid: '628', user: 'zaryu', cpu: 1.5, mem: 3.6, command: 'Finder' },
       ];
     }
 
