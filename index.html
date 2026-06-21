@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arch Linux Pro Max - Standalone Prototype Preview</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons & Alpine/React Alternative or Vue/Standalone React -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Tailwind Config to match UI/UX Pro Max Theme -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            arch: {
+              cyan: '#1793d1',
+              blue: '#0a6B99',
+              dark: '#0B0F17',
+              card: 'rgba(18, 25, 38, 0.6)',
+              border: 'rgba(255, 255, 255, 0.08)',
+            }
+          },
+          fontFamily: {
+            mono: ['"JetBrains Mono"', 'Consolas', 'monospace'],
+            sans: ['Inter', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #0B0F17;
+      color: #f1f5f9;
+      font-family: Inter, system-ui, sans-serif;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(23, 147, 209, 0.5); }
+    
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .animate-pulse-slow { animation: pulse-slow 3s infinite; }
+  </style>
+</head>
+<body class="bg-arch-dark min-h-screen flex flex-col selection:bg-[#1793d1] selection:text-white">
+
+  <!-- Ambient Ambient Glow -->
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[350px] bg-gradient-to-tr from-[#1793d1]/15 to-purple-500/10 blur-[130px] pointer-events-none -z-10"></div>
+
+  <!-- Root Container for React App -->
+  <div id="root" class="flex-1 flex flex-col"></div>
+
+  <!-- Built-in Standalone Prototype App Written in React JSX -->
+  <script type="text/babel">
+
+    // Simple SVG Icon helper components to make it lightweight without loading massive external asset packs
+    const IconArch = () => (
+      <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2L2 22h20L12 2z"/>
+        <path d="M12 14l-4 4h8l-4-4z"/>
+      </svg>
+    );
+
+    const IconActivity = () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>;
+    const IconFolder = () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>;
+    const IconServer = () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>;
+    const IconCpu = () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg>;
+    const IconHardDrive = () => <svg className="w-5 h-5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="22" y1="12" x2="2" y2="12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" y1="16" x2="6.01" y2="16"/><line x1="10" y1="16" x2="10.01" y2="16"/></svg>;
+    const IconRefresh = ({ spin }) => <svg className={`w-4 h-4 ${spin ? 'animate-spin text-[#1793d1]' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>;
+    const IconTerminal = () => <svg className="w-4 h-4 text-[#1793d1]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>;
+    const IconPackage = () => <svg className="w-5 h-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>;
+
+    // Initial Mock Telemetry Data
+    const initialSystemData = {
+      os: { name: 'Arch Linux x86_64', kernel: '6.18.2-arch1-1', hostname: 'arch-master-node', uptime: '4d 12h 35m' },
+      cpu: { model: 'AMD Ryzen 7 7800X3D (16) @ 5.000GHz', cores: 16, loadAverage: ['0.42', '0.55', '0.61'], speedPercent: 24 },
+      memory: { total: '32.0 GB', used: '8.4 GB', free: '23.6 GB', percentage: 26 },
+      disk: { total: '1.0 TB', used: '412 GB', percentage: 41 },
+      packages: { pacmanInstalled: 1542, pacmanUpdates: 14, aurUpdates: 3 },
+      temperatures: { cpu: 51.2 }
+    };
+
+    const App = () => {
+      const [activeTab, setActiveTab] = React.useState('dashboard');
+      const [systemData, setSystemData] = React.useState(initialSystemData);
+      const [loading, setLoading] = React.useState(false);
+      const [updating, setUpdating] = React.useState(false);
+      const [updateLog, setUpdateLog] = React.useState([
+        ':: Synchronizing package databases...',
+        'core is up to date',
+        'extra is up to date',
+        'multilib is up to date',
+        ':: 14 packages to upgrade, 3 AUR packages to rebuild.'
+      ]);
+
+      // File Manager State
+      const [currentPath, setCurrentPath] = React.useState('/home/arch/.config');
+      const [files, setFiles] = React.useState([
+        { name: 'i3', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-17 10:20' },
+        { name: 'alacritty', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-17 11:00' },
+        { name: 'polybar', isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: '2026-06-16 18:30' },
+        { name: 'starship.toml', isDir: false, size: 1420, permissions: 'rw-r--r--', modified: '2026-06-17 09:15', content: '# Starship Prompt Config\n[character]\nsuccess_symbol = "[➜](bold green)"\nerror_symbol = "[✗](bold red)"' },
+        { name: 'picom.conf', isDir: false, size: 3820, permissions: 'rw-r--r--', modified: '2026-06-15 14:10', content: '# Picom Compositor Config\nbackend = "glx";\nvsync = true;\ncorner-radius = 12;' }
+      ]);
+      const [activeEditor, setActiveEditor] = React.useState(null);
+
+      // Systemd State
+      const [services, setServices] = React.useState([
+        { name: 'docker.service', active: true, status: 'running', desc: 'Docker Application Container Engine' },
+        { name: 'nginx.service', active: true, status: 'running', desc: 'A high performance web server and reverse proxy' },
+        { name: 'sshd.service', active: true, status: 'running', desc: 'OpenSSH Daemon' },
+        { name: 'NetworkManager.service', active: true, status: 'running', desc: 'Network Manager Unit' },
+        { name: 'bluetooth.service', active: false, status: 'dead', desc: 'Bluetooth Service Daemon' },
+        { name: 'postgresql.service', active: true, status: 'running', desc: 'PostgreSQL Database Server' }
+      ]);
+
+      // Processes State
+      const [processes, setProcesses] = React.useState([
+        { pid: '1', user: 'root', cpu: 0.1, mem: 0.2, command: '/usr/lib/systemd/systemd --switched-root --system' },
+        { pid: '842', user: 'root', cpu: 1.2, mem: 1.5, command: '/usr/bin/dockerd -H fd://' },
+        { pid: '1420', user: 'arch', cpu: 12.4, mem: 8.7, command: 'alacritty --config-file ~/.config/alacritty/alacritty.toml' },
+        { pid: '1554', user: 'arch', cpu: 5.1, mem: 6.3, command: 'nvim ~/.config/i3/config' },
+        { pid: '1890', user: 'arch', cpu: 28.5, mem: 31.2, command: '/usr/lib/firefox/firefox' }
+      ]);
+
+      const handleRefreshMetrics = () => {
+        setLoading(true);
+        setTimeout(() => {
+          setSystemData(prev => ({
+            ...prev,
+            cpu: { ...prev.cpu, speedPercent: Math.floor(Math.random() * 40) + 15 },
+            memory: { ...prev.memory, percentage: Math.floor(Math.random() * 10) + 25 },
+            temperatures: { cpu: (Math.random() * 8 + 48).toFixed(1) }
+          }));
+          setLoading(false);
+        }, 600);
+      };
+
+      const handleRunPacman = () => {
+        setUpdating(true);
+        setUpdateLog(prev => [...prev, '>> Running: sudo pacman -Syu --noconfirm']);
+        setTimeout(() => {
+          setUpdateLog(prev => [...prev, 'resolving dependencies...', 'upgrading 14 packages...', 'Full system upgrade completed successfully!']);
+          setUpdating(false);
+          setSystemData(prev => ({ ...prev, packages: { ...prev.packages, pacmanUpdates: 0 } }));
+        }, 2500);
+      };
+
+      const handleSaveConfig = (path, content) => {
+        setFiles(prev => prev.map(f => f.name === path ? { ...f, content } : f));
+        setActiveEditor(null);
+        alert('Configuration saved successfully to remote Arch Linux disk.');
+      };
+
+      const handleKillProcess = (pid) => {
+        setProcesses(prev => prev.filter(p => p.pid !== pid));
+        alert(`Process ${pid} killed via SIGKILL -9.`);
+      };
+
+      const handleToggleService = (name, currentActive) => {
+        setServices(prev => prev.map(s => s.name === name ? { ...s, active: !currentActive, status: !currentActive ? 'running' : 'dead' } : s));
+      };
+
+      return (
+        <div className="flex-1 flex flex-col max-w-7xl w-full mx-auto px-6 py-6 space-y-6">
+          
+          {/* Top Header & Navbar */}
+          <header className="backdrop-blur-xl bg-arch-dark/80 border border-arch-border rounded-3xl px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-arch-cyan to-arch-blue flex items-center justify-center shadow-lg shadow-arch-cyan/20">
+                <span className="font-mono font-black text-white text-2xl tracking-tighter">A</span>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="font-mono text-xl font-bold text-white tracking-tight">ARCH LINUX DASHBOARD</h1>
+                  <span className="text-xs px-2 py-0.5 rounded font-mono font-bold bg-arch-cyan/20 text-arch-cyan border border-arch-cyan/30">
+                    UI/UX PRO MAX
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 font-mono">
+                  {systemData.os.hostname} <span className="text-arch-cyan">●</span> Kernel {systemData.os.kernel}
+                </p>
+              </div>
+            </div>
+
+            {/* Nav Tabs */}
+            <nav className="flex items-center gap-1.5 bg-white/5 p-1.5 rounded-2xl border border-white/10">
+              {[
+                { id: 'dashboard', label: 'Overview', icon: IconActivity },
+                { id: 'files', label: 'File Manager', icon: IconFolder },
+                { id: 'services', label: 'Systemd Services', icon: IconServer },
+                { id: 'processes', label: 'Processes', icon: IconCpu }
+              ].map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-mono text-xs font-bold transition-all ${
+                    activeTab === item.id ? 'bg-gradient-to-r from-arch-cyan to-arch-blue text-white shadow-md shadow-arch-cyan/25' : 'text-slate-300 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <item.icon />
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </nav>
+          </header>
+
+          {/* MAIN TAB CONTENT */}
+          <main className="flex-1 space-y-6">
+            
+            {/* 1. DASHBOARD TAB */}
+            {activeTab === 'dashboard' && (
+              <div className="space-y-6">
+                {/* Poll / Status banner */}
+                <div className="flex items-center justify-between bg-arch-card border border-arch-border rounded-3xl p-6 backdrop-blur-xl">
+                  <div>
+                    <h2 className="text-2xl font-bold font-mono text-white flex items-center gap-2">
+                      <span>Live Telemetry Overview</span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                    </h2>
+                    <p className="text-slate-400 text-sm mt-1">Polling metrics from remote Arch Linux server over WebSocket/API</p>
+                  </div>
+                  <button
+                    onClick={handleRefreshMetrics}
+                    disabled={loading}
+                    className="flex items-center gap-2 bg-white/10 hover:bg-white/15 text-white px-5 py-2.5 rounded-xl font-mono text-xs font-bold transition-all border border-white/10"
+                  >
+                    <IconRefresh spin={loading} />
+                    <span>{loading ? 'Refreshing...' : 'Poll Metrics'}</span>
+                  </button>
+                </div>
+
+                {/* Metrics Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* CPU */}
+                  <div className="bg-arch-card border border-arch-border rounded-3xl p-6 flex flex-col justify-between backdrop-blur-xl shadow-xl hover:border-arch-cyan transition-all">
+                    <div>
+                      <div className="flex items-center justify-between text-xs font-mono text-slate-400 font-bold uppercase">
+                        <span>CPU Utilization</span>
+                        <IconCpu />
+                      </div>
+                      <div className="mt-4 flex items-baseline justify-between font-mono">
+                        <span className="text-4xl font-black text-white">{systemData.cpu.speedPercent}%</span>
+                        <span className="text-xs text-slate-400">{systemData.cpu.cores} Cores @ {systemData.temperatures.cpu}°C</span>
+                      </div>
+                      <div className="w-full bg-white/5 rounded-full h-3 mt-3 overflow-hidden p-0.5 border border-white/10">
+                        <div className="bg-gradient-to-r from-arch-cyan to-arch-blue h-full rounded-full transition-all duration-500" style={{ width: `${systemData.cpu.speedPercent}%` }}></div>
+                      </div>
+                    </div>
+                    <div className="mt-6 pt-4 border-t border-white/5 font-mono text-xs text-slate-400 space-y-1">
+                      <div className="truncate text-slate-200">{systemData.cpu.model}</div>
+                      <div>Load Avg: {systemData.cpu.loadAverage.join(' / ')}</div>
+                    </div>
+                  </div>
+
+                  {/* RAM */}
+                  <div className="bg-arch-card border border-arch-border rounded-3xl p-6 flex flex-col justify-between backdrop-blur-xl shadow-xl hover:border-purple-500 transition-all">
+                    <div>
+                      <div className="flex items-center justify-between text-xs font-mono text-slate-400 font-bold uppercase">
+                        <span>Memory (RAM)</span>
+                        <span className="text-purple-400">●●●</span>
+                      </div>
+                      <div className="mt-4 flex items-baseline justify-between font-mono">
+                        <span className="text-4xl font-black text-white">{systemData.memory.percentage}%</span>
+                        <span className="text-xs text-slate-400">{systemData.memory.used} / {systemData.memory.total}</span>
+                      </div>
+                      <div className="w-full bg-white/5 rounded-full h-3 mt-3 overflow-hidden p-0.5 border border-white/10">
+                        <div className="bg-gradient-to-r from-purple-500 to-indigo-500 h-full rounded-full transition-all duration-500" style={{ width: `${systemData.memory.percentage}%` }}></div>
+                      </div>
+                    </div>
+                    <div className="mt-6 pt-4 border-t border-white/5 font-mono text-xs text-slate-400 space-y-1">
+                      <div>Free Buffer: <span className="text-emerald-400 font-bold">{systemData.memory.free}</span></div>
+                      <div>Swap Available: 0 GB</div>
+                    </div>
+                  </div>
+
+                  {/* Disk */}
+                  <div className="bg-arch-card border border-arch-border rounded-3xl p-6 flex flex-col justify-between backdrop-blur-xl shadow-xl hover:border-emerald-500 transition-all">
+                    <div>
+                      <div className="flex items-center justify-between text-xs font-mono text-slate-400 font-bold uppercase">
+                        <span>Root Partition ( / )</span>
+                        <IconHardDrive />
+                      </div>
+                      <div className="mt-4 flex items-baseline justify-between font-mono">
+                        <span className="text-4xl font-black text-white">{systemData.disk.percentage}%</span>
+                        <span className="text-xs text-slate-400">{systemData.disk.used} Used</span>
+                      </div>
+                      <div className="w-full bg-white/5 rounded-full h-3 mt-3 overflow-hidden p-0.5 border border-white/10">
+                        <div className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full transition-all duration-500" style={{ width: `${systemData.disk.percentage}%` }}></div>
+                      </div>
+                    </div>
+                    <div className="mt-6 pt-4 border-t border-white/5 font-mono text-xs text-slate-400 space-y-1">
+                      <div>Filesystem: BTRFS (Subvolumes)</div>
+                      <div>SMART Health: <span className="text-emerald-400 font-bold">PASSED OK</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Package Automation Card */}
+                <div className="bg-arch-card border border-arch-border rounded-3xl p-6 backdrop-blur-xl shadow-xl flex flex-col md:flex-row justify-between gap-6">
+                  <div className="space-y-3 flex-1">
+                    <div className="flex items-center gap-3">
+                      <IconPackage />
+                      <h3 className="text-lg font-bold font-mono text-white">Pacman & AUR Intelligence</h3>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4 pt-2">
+                      <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
+                        <div className="text-xs text-slate-400 font-mono">Installed Packages</div>
+                        <div className="text-2xl font-black font-mono text-white mt-1">{systemData.packages.pacmanInstalled}</div>
+                      </div>
+                      <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
+                        <div className="text-xs text-slate-400 font-mono">Official Updates</div>
+                        <div className="text-2xl font-black font-mono text-amber-400 mt-1">{systemData.packages.pacmanUpdates}</div>
+                      </div>
+                      <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
+                        <div className="text-xs text-slate-400 font-mono">AUR Updates</div>
+                        <div className="text-2xl font-black font-mono text-purple-400 mt-1">{systemData.packages.aurUpdates}</div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleRunPacman}
+                      disabled={updating}
+                      className="bg-gradient-to-r from-arch-cyan to-arch-blue text-white font-mono text-xs px-5 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-arch-cyan/20 hover:opacity-90 active:scale-95 transition-all"
+                    >
+                      <IconRefresh spin={updating} />
+                      <span>{updating ? 'Executing sudo pacman -Syu...' : 'Run Full System Upgrade (pacman -Syu)'}</span>
+                    </button>
+                  </div>
+
+                  {/* Terminal Log */}
+                  <div className="bg-[#06080D] border border-white/10 rounded-2xl p-4 font-mono text-xs flex-1 flex flex-col justify-between">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2 text-slate-500">
+                      <span className="text-[#1793d1] font-bold">pacman.log</span>
+                      <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded text-emerald-400">STREAMING</span>
+                    </div>
+                    <div className="space-y-1 h-32 overflow-y-auto text-slate-300">
+                      {updateLog.map((l, i) => <div key={i} className={l.includes('successfully') ? 'text-emerald-400 font-bold' : ''}>{l}</div>)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 2. FILE MANAGER TAB */}
+            {activeTab === 'files' && (
+              <div className="space-y-6">
+                {/* Control bar */}
+                <div className="bg-arch-card border border-arch-border rounded-3xl p-6 backdrop-blur-xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="bg-[#06080D] border border-white/10 rounded-2xl px-4 py-3 flex items-center gap-2 flex-1 sm:w-96">
+                      <span className="font-mono text-arch-cyan font-bold">path:</span>
+                      <input
+                        type="text"
+                        value={currentPath}
+                        onChange={(e) => setCurrentPath(e.target.value)}
+                        className="bg-transparent font-mono text-sm text-white focus:outline-none w-full"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        const name = prompt('New file name (e.g. settings.json):');
+                        if (name) setFiles(prev => [...prev, { name, isDir: false, size: 120, permissions: 'rw-r--r--', modified: 'Just now', content: '# New file' }]);
+                      }}
+                      className="bg-white/10 hover:bg-white/15 text-white font-mono text-xs px-4 py-3 rounded-2xl border border-white/10 font-bold"
+                    >
+                      + New File
+                    </button>
+                    <button
+                      onClick={() => {
+                        const name = prompt('New folder name (e.g. scripts):');
+                        if (name) setFiles(prev => [...prev, { name, isDir: true, size: 4096, permissions: 'rwxr-xr-x', modified: 'Just now' }]);
+                      }}
+                      className="bg-gradient-to-r from-arch-cyan to-arch-blue text-white font-mono text-xs px-4 py-3 rounded-2xl font-bold shadow-lg shadow-arch-cyan/20"
+                    >
+                      + New Folder
+                    </button>
+                  </div>
+                </div>
+
+                {/* File Table */}
+                <div className="bg-arch-card border border-arch-border rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl">
+                  <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-white/5 border-b border-white/10 font-mono text-xs font-bold text-slate-400 uppercase">
+                    <div className="col-span-6">Item Name</div>
+                    <div className="col-span-2 text-right">Size</div>
+                    <div className="col-span-2 text-center">Permissions (Chmod)</div>
+                    <div className="col-span-2 text-right">Actions</div>
+                  </div>
+                  <div className="divide-y divide-white/5 font-mono text-sm">
+                    {files.map((file, idx) => (
+                      <div key={idx} className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-white/5 transition-all">
+                        <div
+                          onClick={() => !file.isDir && setActiveEditor(file)}
+                          className="col-span-6 flex items-center gap-3 cursor-pointer text-slate-200 hover:text-arch-cyan"
+                        >
+                          {file.isDir ? <span className="text-xl">📁</span> : <span className="text-xl">📄</span>}
+                          <span className="font-bold">{file.name}</span>
+                        </div>
+                        <div className="col-span-2 text-right text-xs text-slate-400">{file.isDir ? '--' : `${file.size} B`}</div>
+                        <div className="col-span-2 text-center">
+                          <button
+                            onClick={() => {
+                              const p = prompt(`Modify octal permissions for ${file.name}:`, '755');
+                              if (p) setFiles(prev => prev.map(f => f.name === file.name ? { ...f, permissions: `(chmod ${p})` } : f));
+                            }}
+                            className="text-xs px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 hover:border-arch-cyan hover:text-arch-cyan"
+                          >
+                            {file.permissions}
+                          </button>
+                        </div>
+                        <div className="col-span-2 text-right space-x-2">
+                          {!file.isDir && (
+                            <button onClick={() => setActiveEditor(file)} className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-arch-cyan" title="Edit config">
+                              ✏️
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              alert(`Successfully archived ${file.name} to ${file.name}.tar.gz`);
+                            }}
+                            className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-amber-400"
+                            title="Compress tar.gz"
+                          >
+                            📦
+                          </button>
+                          <button
+                            onClick={() => setFiles(prev => prev.filter(f => f.name !== file.name))}
+                            className="p-2 bg-rose-500/10 hover:bg-rose-500/20 rounded-xl text-rose-400"
+                            title="Delete"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 3. SYSTEMD SERVICES TAB */}
+            {activeTab === 'services' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {services.map((service, idx) => (
+                  <div key={idx} className="bg-arch-card border border-arch-border rounded-3xl p-5 backdrop-blur-xl flex flex-col justify-between shadow-lg">
+                    <div>
+                      <div className="flex items-start justify-between">
+                        <h3 className="font-mono font-bold text-white text-base">{service.name}</h3>
+                        <span className={`px-2.5 py-0.5 rounded-full font-mono text-[10px] font-bold uppercase border ${service.active ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}`}>
+                          {service.status}
+                        </span>
+                      </div>
+                      <p className="text-slate-400 text-xs mt-2">{service.desc}</p>
+                    </div>
+                    <div className="mt-6 pt-4 border-t border-white/5 flex justify-end gap-2 font-mono text-xs">
+                      <button
+                        onClick={() => handleToggleService(service.name, service.active)}
+                        className={`px-3 py-2 rounded-xl font-bold border ${service.active ? 'bg-rose-500/10 text-rose-300 border-rose-500/20 hover:bg-rose-500/20' : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20 hover:bg-emerald-500/20'}`}
+                      >
+                        {service.active ? 'Stop Unit' : 'Start Unit'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* 4. PROCESSES TAB */}
+            {activeTab === 'processes' && (
+              <div className="bg-arch-card border border-arch-border rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl">
+                <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-white/5 border-b border-white/10 font-mono text-xs font-bold text-slate-400 uppercase">
+                  <div className="col-span-2">PID</div>
+                  <div className="col-span-2">User</div>
+                  <div className="col-span-2 text-right">CPU %</div>
+                  <div className="col-span-2 text-right">MEM %</div>
+                  <div className="col-span-3">Command</div>
+                  <div className="col-span-1 text-right">Action</div>
+                </div>
+                <div className="divide-y divide-white/5 font-mono text-sm">
+                  {processes.map((p, idx) => (
+                    <div key={idx} className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-white/5">
+                      <div className="col-span-2 font-bold text-arch-cyan">{p.pid}</div>
+                      <div className="col-span-2 text-slate-300">{p.user}</div>
+                      <div className="col-span-2 text-right text-amber-400 font-bold">{p.cpu}%</div>
+                      <div className="col-span-2 text-right text-purple-400 font-bold">{p.mem}%</div>
+                      <div className="col-span-3 text-slate-200 truncate">{p.command}</div>
+                      <div className="col-span-1 text-right">
+                        <button
+                          onClick={() => handleKillProcess(p.pid)}
+                          disabled={p.pid === '1'}
+                          className="p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-xl disabled:opacity-30 border border-rose-500/20"
+                          title="Force Kill"
+                        >
+                          💀
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          </main>
+
+          {/* EDITOR MODAL */}
+          {activeEditor && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-xl bg-black/75 animate-fadeIn">
+              <div className="w-full max-w-4xl bg-arch-dark border border-arch-border rounded-3xl overflow-hidden shadow-2xl flex flex-col h-[80vh]">
+                <div className="px-6 py-4 bg-arch-card border-b border-white/10 flex justify-between items-center">
+                  <h3 className="font-mono font-bold text-white text-sm">Editing: {activeEditor.name}</h3>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleSaveConfig(activeEditor.name, document.getElementById('editor-textarea').value)}
+                      className="px-4 py-2 bg-gradient-to-r from-arch-cyan to-arch-blue text-white font-mono text-xs font-bold rounded-xl shadow-lg"
+                    >
+                      Save to System
+                    </button>
+                    <button onClick={() => setActiveEditor(null)} className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400">
+                      ❌
+                    </button>
+                  </div>
+                </div>
+                <textarea
+                  id="editor-textarea"
+                  defaultValue={activeEditor.content || '# Edit content here...'}
+                  className="flex-1 p-6 bg-[#06080D] font-mono text-xs text-slate-200 focus:outline-none resize-none leading-relaxed"
+                  spellCheck={false}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <footer className="border-t border-white/5 pt-6 text-center text-xs font-mono text-slate-500">
+            Arch Linux Pro Max Prototype ● Fully Functional UI/UX Demonstration
+          </footer>
+
+        </div>
+      );
+    };
+
+    // Render App
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+
+  </script>
+</body>
+</html>
