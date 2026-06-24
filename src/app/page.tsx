@@ -29,8 +29,8 @@ export default function Home() {
 
   useEffect(() => {
     fetchSystemData();
-    // Setup automatic telemetry polling every 10 seconds
-    const interval = setInterval(fetchSystemData, 10000);
+    // Setup automatic telemetry polling every 30 seconds
+    const interval = setInterval(fetchSystemData, 30000);
     return () => clearInterval(interval);
   }, []);
 

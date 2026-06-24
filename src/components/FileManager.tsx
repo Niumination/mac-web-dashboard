@@ -228,7 +228,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ currentPath, setCurren
         {loading && (
           <div className="p-12 text-center font-mono text-slate-400 flex flex-col items-center gap-3">
             <RefreshCw className="w-6 h-6 animate-spin text-arch-cyan" />
-            <span>Accessing Linux Filesystem...</span>
+            <span>Accessing macOS Filesystem...</span>
           </div>
         )}
 
@@ -341,7 +341,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ currentPath, setCurren
                 type="text"
                 value={newItemName}
                 onChange={(e) => setNewItemName(e.target.value)}
-                placeholder={createModal === 'dir' ? 'e.g. scripts' : 'e.g. polybar.ini'}
+                placeholder={createModal === 'dir' ? 'e.g. projects' : 'e.g. notes.md'}
                 className="w-full bg-[#06080D] border border-white/10 rounded-xl px-4 py-3 font-mono text-sm text-white focus:outline-none focus:border-arch-cyan"
               />
             </div>

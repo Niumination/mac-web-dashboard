@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { Cpu, HardDrive, Database, Activity, Package, ArrowUpRight, RefreshCw, Terminal, CheckCircle2, ShieldAlert } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Cpu, HardDrive, Database, Activity, Package, RefreshCw, Terminal, CheckCircle2 } from 'lucide-react';
+import { SystemChart } from './SystemChart';
+import { BatteryHealth } from './BatteryHealth';
 
 interface DashboardProps {
   systemData: any;
@@ -10,13 +12,19 @@ interface DashboardProps {
 export const Dashboard: React.FC<DashboardProps> = ({ systemData, onRefresh, loading }) => {
   const [updating, setUpdating] = useState(false);
   const [updateLog, setUpdateLog] = useState<string[]>([
-    ':: Running brew update...',
-    'Updated 2 taps (homebrew-core, homebrew-cask).',
-    '==> New Formulae',
-    'kubectl k9s lazydocker',
-    '==> Outdated Formulae (5)',
-    'node (22.0.0 -> 22.4.1), python (3.12 -> 3.13)'
+    ':: Homebrew upgrade ready',
+    'Press "Run brew upgrade" to start real package upgrade.'
   ]);
+  const [outdatedList, setOutdatedList] = useState<{ name: string; from: string; to: string }[]>([]);
+  const [showOutdated, setShowOutdated] = useState(false);
+
+  // Fetch outdated packages on mount
+  useEffect(() => {
+    fetch('/api/brew')
+      .then(r => r.json())
+      .then(d => { if (d.success) setOutdatedList(d.data || []); })
+      .catch(() => {});
+  }, [systemData?.packages]);
 
   if (!systemData) return null;
 
@@ -24,14 +32,42 @@ export const Dashboard: React.FC<DashboardProps> = ({ systemData, onRefresh, loa
 
   const handleRunBrewUpdate = () => {
     setUpdating(true);
-    setUpdateLog(prev => [...prev, '> Running: brew update && brew upgrade']);
-    setTimeout(() => {
-      setUpdateLog(prev => [...prev, '==> Upgrading 5 outdated formulae:', 'node 22.0.0 -> 22.4.1', 'python 3.12 -> 3.13', 'git 2.45 -> 2.47', '==> Upgrading 2 casks:', 'docker 4.28 -> 4.32', '==> Cleaning up...']);
-    }, 1500);
-    setTimeout(() => {
-      setUpdateLog(prev => [...prev, '✅ All packages up to date!', '🍺 Homebrew upgrade completed.']);
+    setUpdateLog(['🚀 Starting Homebrew upgrade pipeline...']);
+    setShowOutdated(false);
+
+    const es = new EventSource('/api/brew');
+    es.onmessage = (ev) => {
+      try {
+        const parsed = JSON.parse(ev.data);
+        if (parsed.type === 'stdout' || parsed.type === 'stderr' || parsed.type === 'info' || parsed.type === 'cmd') {
+          setUpdateLog(prev => [...prev, parsed.text.replace(/\n$/, '')]);
+        }
+        if (parsed.type === 'success') {
+          setUpdating(false);
+          onRefresh(); // Refresh dashboard data
+          es.close();
+        }
+        if (parsed.type === 'error') {
+          setUpdating(false);
+          es.close();
+          // Re-fetch outdated to reflect changes
+          fetch('/api/brew').then(r => r.json()).then(d => { if (d.success) setOutdatedList(d.data || []); }).catch(() => {});
+        }
+      } catch { /* ignore parse errors */ }
+    };
+    es.onerror = () => {
       setUpdating(false);
-    }, 3500);
+      es.close();
+    };
+  };
+
+  const handleFetchOutdated = async () => {
+    try {
+      const res = await fetch('/api/brew');
+      const d = await res.json();
+      if (d.success) setOutdatedList(d.data || []);
+      setShowOutdated(true);
+    } catch { /* ignore */ }
   };
 
   return (
@@ -57,6 +93,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ systemData, onRefresh, loa
           <span>{loading ? 'Polling...' : 'Refresh Metrics'}</span>
         </button>
       </div>
+
+      {/* Battery Health */}
+      <BatteryHealth />
 
       {/* BENTO BOX GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -190,14 +229,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ systemData, onRefresh, loa
                   <p className="text-xs text-slate-400 font-mono">macOS Package Management Automation</p>
                 </div>
               </div>
-              <button
-                onClick={handleRunBrewUpdate}
-                disabled={updating}
-                className="bg-gradient-to-r from-arch-cyan to-arch-blue hover:opacity-90 active:scale-95 text-white font-mono text-xs px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-arch-cyan/20"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${updating ? 'animate-spin' : ''}`} />
-                <span>{updating ? 'Upgrading Packages...' : 'Run brew upgrade'}</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleFetchOutdated}
+                  disabled={updating}
+                  className="bg-white/10 hover:bg-white/15 active:scale-95 text-white font-mono text-xs px-3 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all border border-white/10"
+                  title="Check outdated packages"
+                >
+                  <Package className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Outdated</span>
+                </button>
+                <button
+                  onClick={handleRunBrewUpdate}
+                  disabled={updating}
+                  className="bg-gradient-to-r from-arch-cyan to-arch-blue hover:opacity-90 active:scale-95 text-white font-mono text-xs px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-arch-cyan/20"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${updating ? 'animate-spin' : ''}`} />
+                  <span>{updating ? 'Upgrading Packages...' : 'Run brew upgrade'}</span>
+                </button>
+              </div>
             </div>
 
             {/* Status grid */}
@@ -247,9 +297,36 @@ export const Dashboard: React.FC<DashboardProps> = ({ systemData, onRefresh, loa
               ))}
             </div>
           </div>
+
+          {/* Outdated packages list */}
+          {showOutdated && outdatedList.length > 0 && (
+            <div className="mt-3 bg-[#06080D] border border-amber-500/20 rounded-2xl p-3 font-mono text-xs">
+              <div className="text-amber-400 font-bold mb-2">📦 Outdated Packages ({outdatedList.length})</div>
+              <div className="max-h-24 overflow-y-auto space-y-1">
+                {outdatedList.map((pkg, idx) => (
+                  <div key={idx} className="text-slate-300 flex justify-between">
+                    <span>{pkg.name}</span>
+                    {pkg.from && pkg.to && (
+                      <span className="text-slate-500">{pkg.from} → <span className="text-arch-cyan">{pkg.to}</span></span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {showOutdated && outdatedList.length === 0 && (
+            <div className="mt-3 bg-[#06080D] border border-emerald-500/20 rounded-2xl p-3 font-mono text-xs text-emerald-400">
+              ✅ All packages up to date!
+            </div>
+          )}
         </div>
 
-        {/* 5. SYSTEM PROFILE & KERNEL DETAILS */}
+        {/* 5. REAL-TIME TELEMETRY CHART */}
+        <div className="lg:col-span-2">
+          <SystemChart />
+        </div>
+
+        {/* 6. SYSTEM PROFILE & KERNEL DETAILS */}
         <div className="bg-arch-card border border-arch-border rounded-3xl p-6 flex flex-col justify-between backdrop-blur-xl shadow-xl">
           <div>
             <div className="flex items-center gap-3">
