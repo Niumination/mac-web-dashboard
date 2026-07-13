@@ -1,5 +1,5 @@
 import React from 'react';
-import { Terminal, Shield, Cpu, Activity, FolderKanban, Server, Settings, ExternalLink } from 'lucide-react';
+import { Terminal, Shield, Cpu, Activity, FolderKanban, Server, Settings, ExternalLink, ShieldAlert, BrainCircuit } from 'lucide-react';
 
 interface NavbarProps {
   activeTab: string;
@@ -17,6 +17,8 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, osInfo 
     { id: 'files', label: 'File Manager', icon: FolderKanban },
     { id: 'services', label: 'Launchd Services', icon: Server },
     { id: 'processes', label: 'Process List', icon: Cpu },
+    { id: 'security', label: 'Security', icon: ShieldAlert },
+    { id: 'ai-workspace', label: 'AI Workspace', icon: BrainCircuit },
   ];
 
   return (

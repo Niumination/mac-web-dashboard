@@ -6,6 +6,8 @@ import { Dashboard } from '@/components/Dashboard';
 import { FileManager } from '@/components/FileManager';
 import { ServicesManager } from '@/components/ServicesManager';
 import { ProcessList } from '@/components/ProcessList';
+import { HexStrikeDashboard } from '@/components/HexStrikeDashboard';
+import AIWorkspace from '@/components/AIWorkspace';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -74,6 +76,14 @@ export default function Home() {
 
         {activeTab === 'processes' && (
           <ProcessList />
+        )}
+
+        {activeTab === 'security' && (
+          <HexStrikeDashboard />
+        )}
+
+        {activeTab === 'ai-workspace' && (
+          <AIWorkspace />
         )}
       </main>
 
