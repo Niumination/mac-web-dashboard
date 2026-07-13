@@ -8,6 +8,7 @@ import { ServicesManager } from '@/components/ServicesManager';
 import { ProcessList } from '@/components/ProcessList';
 import { HexStrikeDashboard } from '@/components/HexStrikeDashboard';
 import AIWorkspace from '@/components/AIWorkspace';
+import TelegramHub from '@/components/TelegramHub';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -84,6 +85,10 @@ export default function Home() {
 
         {activeTab === 'ai-workspace' && (
           <AIWorkspace />
+        )}
+
+        {activeTab === 'telegram' && (
+          <TelegramHub />
         )}
       </main>
 
