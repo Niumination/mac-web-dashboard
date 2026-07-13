@@ -4,3 +4,9 @@ node_modules/
 next-env.d.ts
 package-lock.json
 .DS_Store
+venv/
+__pycache__/
+*.pyc
+hexstrike/log
+hexstrike/*.log
+hexstrike/venv/
