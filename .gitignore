@@ -11,3 +11,4 @@ hexstrike/log
 hexstrike/*.log
 hexstrike/venv/
 hexstrike/repo/
+hexstrike/
